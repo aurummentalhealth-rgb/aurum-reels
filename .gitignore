@@ -18,5 +18,7 @@ client_secret*.json
 .mcp.local.json
 .planning/
 STATE.md
-CLAUDE.md
-AGENTS.md
+
+# Reels de Aurum: los masters pesados no se suben (solo <slug>-telefono.mp4)
+reels/*/exports/
+reels/*/tools/node_modules/

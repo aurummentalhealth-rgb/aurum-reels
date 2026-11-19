@@ -313,6 +313,29 @@
     //     hero: '#D9772B',
     //     heroDeep: '#B55A1C',
     // Scene code reads them as lib.pal.<name>.
+    aurumGold: '#B08858',
+    aurumBrown: '#604020',
+    aurumGray: '#202020',
+    aurumCream: '#F6EFE0',
+    skin: '#E9C39C',
+    skinDeep: '#BE8A5E',
+    hair: '#3B2A1E',
+    shirt: '#5C93A8',
+    shirtDeep: '#3F6F82',
+    pants: '#4F5B78',
+    backpack: '#D98B3A',
+    water: '#8FB8CF',
+    waterDeep: '#5E8EA8',
+    grass: '#8FA86A',
+    cliff: '#C9A87C',
+    brick: '#C9806A',
+    roof: '#8E4F3E',
+    plank: '#C99A62',
+    plankDeep: '#9C6E3E',
+    cardPaper: '#FBF6EA',
+    parentTop: '#B07FA8',
+    teacherTop: '#7FA36E',
+    friendTop: '#E0B54A',
     // 2.3 cool schematic palette (blueprint plate)
     navy: '#0B1230',
     navyDeep: '#060A1C',
@@ -325,6 +348,7 @@
     magenta: '#FF3D98',
     // Subject identity tints — 1 to 3 per film, from art-bible 2.3, e.g. schemHero: '#F2A66A'.
     // Line or dot colours only, never fills; a schematic shot uses at most one besides magenta.
+    schemGold: '#F2C98A',
     // 2.4 overlay colours on illustrations
     annMagenta: '#E43D8C',
     annBlue: '#3B8EE0',

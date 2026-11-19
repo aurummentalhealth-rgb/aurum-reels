@@ -37,7 +37,7 @@
     // Section fader rides in dB at global times, pre-compressor: quiet egg, hushed pupa, full drop,
     // hushed winter, and an ending level that meets the opening level at the loop seam.
     // Per film: section fader rides in dB at global times, pre-compressor (see reference/music.md).
-    ride: [[0, 0]],
+    ride: [[0, -1.5], [6, -3], [9, -1], [12, 0], [15, -1], [18, -2]],
   };
 
   // ---------------------------------------------------------------- pitch
@@ -1313,30 +1313,78 @@
   // shows the engine idiom: instruments take absolute global times, score() is re-invoked per bar
   // and the engine windows each call, so scheduling the whole piece here is correct. Everything
   // below derives from FILM.TIMELINE, so it runs at any bpm and duration.
+  // "Puentes al colegio": F major, 80 bpm, one chord per 3 s bar (one bar per shot).
   const CH = {
-    home: ['D3', 'A3', 'D4', 'F#4'],
-    away: ['G3', 'B3', 'D4', 'G4'],
+    F: ['F3', 'A3', 'C4', 'E4'],
+    Dm: ['D3', 'F3', 'A3', 'C4'],
+    Bb: ['Bb2', 'D3', 'F3', 'A3'],
+    C: ['C3', 'E3', 'G3', 'Bb3'],
+    Fend: ['F3', 'A3', 'C4', 'F4'],
   };
+  const BARS = [['F', 'F2'], ['Dm', 'D2'], ['Bb', 'Bb1'], ['C', 'C2'], ['F', 'F2'], ['Fend', 'F2']];
 
   function score(E, I) {
-    const { kick, hat, kalimba, pad, sub } = I;
-    const bpm = (FILM.TIMELINE && FILM.TIMELINE.bpm) || 120;
-    const DUR = (FILM.TIMELINE && FILM.TIMELINE.duration) || 32;
-    const BAR = 240 / bpm;
-    const BEAT = 60 / bpm;
-    const motif = ['D5', 'F#5', 'A5', 'E5'];
-    for (let beat = 0; beat * BEAT < DUR - 1e-9; beat++) {
-      const t = Math.round(beat * BEAT * 1000) / 1000;
-      const down = beat % 4 === 0;
-      kick(t, down ? 0.8 : 0.5, down ? 'full' : 'felt');
-      hat(t + BEAT / 2, 0.1);
-      kalimba(t + BEAT / 2, hz(motif[beat % 4]), 0.2, { hall: 0.15, delay: 0.1, pan: beat % 2 ? 0.15 : -0.15 });
-      if (down) {
-        const home = beat % 8 === 0;
-        pad(t, Math.min(t + BAR, DUR), home ? CH.home : CH.away, 0.28, { att: 0.05, rel: 0.1, cut0: 900, cut1: 1400, hall: 0.15 });
-        sub(t, Math.min(t + BAR, DUR), home ? 'D2' : 'G1', 0.4, { att: 0.02, rel: 0.08 });
+    const { kick, hat, shaker, kalimba, pad, sub, glass, tock, marimba, glock, fmBell, pluck, nz, revSwell, ting } = I;
+    const BEAT = 0.75, BAR = 3, DUR = 18;
+    const knock = (t, f) => {
+      tock(t, 0.7, f);
+      marimba(t, hz('F3'), 0.5, { pan: -0.1 });
+      kick(t, 0.45, 'felt');
+    };
+    // bed: pad and sub, one chord per bar
+    BARS.forEach(([c, b], i) => {
+      const t0 = i * BAR;
+      pad(t0, Math.min(t0 + BAR, DUR), CH[c], i === 5 ? 0.24 : 0.2, { att: i ? 0.05 : 0.02, rel: i === 5 ? 1.2 : 0.1, cut0: 800, cut1: 1500, hall: 0.2 });
+      if (i >= 1) sub(t0, Math.min(t0 + BAR, DUR), b, 0.3, { att: 0.03, rel: 0.1 });
+    });
+    // gentle kalimba motif on the off-beats (8ths), quieter in the calm bar
+    const motif = [['C5', 'A4', 'F5', 'E5'], ['D5', 'A4', 'F5', 'C5'], ['D5', 'Bb4', 'F5', 'A4'], ['E5', 'C5', 'G5', 'Bb4'], ['C5', 'A4', 'F5', 'G5'], ['A4', 'C5', 'F5', 'C5']];
+    for (let bar = 0; bar < 6; bar++) {
+      for (let k = 0; k < 4; k++) {
+        const t = bar * BAR + k * BEAT + BEAT / 2;
+        if (t >= DUR - 0.4) continue;
+        kalimba(t, hz(motif[bar][k]), bar === 2 ? 0.12 : 0.18, { hall: 0.2, delay: 0.12, pan: k % 2 ? 0.2 : -0.2 });
       }
     }
+    // cue 0: open
+    kalimba(0, hz('F5'), 0.3, { hall: 0.3 });
+    pluck(0, 'F4', 0.25, { hall: 0.2 });
+    // cue 1.5: falling two-note question
+    kalimba(1.5, hz('A5'), 0.32, { hall: 0.3, delay: 0.15 });
+    kalimba(1.875, hz('E5'), 0.28, { hall: 0.3, delay: 0.15 });
+    // cue 3 and 9: glass ping into the blueprint
+    glass(3, hz('C6'), 0.35, { hall: 0.3 });
+    glass(9, hz('C6'), 0.35, { hall: 0.3 });
+    // planks: wood knocks
+    knock(3.75, 700); knock(4.5, 780); knock(7.5, 700); knock(9.75, 780); knock(10.5, 860);
+    // light pulse in the blueprint bars
+    for (const b0 of [3, 9]) for (let k = 0; k < 4; k++) hat(b0 + k * BEAT + BEAT / 2, 0.07);
+    // cue 6: cut, muffled noise bed that fades on the breath
+    pluck(6, 'D4', 0.22, { hall: 0.25 });
+    nz(6, 0.75, { type: 'bandpass', f: [[0, 900], [0.75, 500, 'exp']], amp: [[0, 0], [0.02, 0.06], [0.75, 0]], q: 1.2 });
+    // cue 6.75: breath-in swell (with a soft bell onset)
+    revSwell(6.0, 0.75, 0.12);
+    ting(6.75, hz('F5'), 0.22, { hall: 0.35 });
+    // cue 11.25: rising chime, bridge complete
+    ['F5', 'A5', 'C6', 'F6'].forEach((n, k) => glock(11.25 + k * 0.1875, hz(n), 0.3 - k * 0.03, { hall: 0.3 }));
+    // cue 12: full groove
+    for (let k = 0; k < 4; k++) {
+      const t = 12 + k * BEAT;
+      kick(t, k === 0 ? 0.85 : 0.55, k === 0 ? 'full' : 'felt');
+      shaker(t + BEAT / 2, 0.12, k % 2 ? 0.2 : -0.2);
+    }
+    pluck(12, 'F4', 0.3, { hall: 0.2 });
+    pluck(12, 'C5', 0.22, { hall: 0.2 });
+    // cue 13.5: footsteps on the planks
+    [13.5, 13.6875, 13.875].forEach((t, k) => tock(t, 0.6 - k * 0.12, 950 - k * 40));
+    // cue 14.25: sparkle bells
+    ['C6', 'E6', 'G6', 'C7'].forEach((n, k) => ting(14.25 + k * 0.09, hz(n), 0.18, { hall: 0.35, pan: k % 2 ? 0.3 : -0.3 }));
+    // cue 15: resolving chord into the close
+    kick(15, 0.6, 'felt');
+    fmBell(15, hz('F5'), 0.3, { hall: 0.35 });
+    pluck(15, 'A4', 0.25, { hall: 0.3 });
+    // cue 16.5: soft bell
+    ting(16.5, hz('C6'), 0.22, { hall: 0.4 });
   }
 
   FILM.audio = {
